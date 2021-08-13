@@ -1,5 +1,7 @@
 #! /bin/env python3
 import pprint
+import uuid
+
 import sentry_sdk
 import json
 
@@ -36,9 +38,9 @@ def chunks(lst, n):
 
 
 class VaccinInfo(object):
-    last_message_file: str = os.getenv('VACCIN_LAST_MESSAGE_FILE', './scripts/vaccin-info/last_message_read.txt')
-    last_message_treated_file: str = os.getenv('VACCIN_LAST_MESSAGE_TREATED_FILE', './scripts/vaccin-info/24hours_messages_treated.json')
-    doctor_id_file: str = os.getenv('VACCIN_DOCTOR_ID_FILE', './scripts/vaccin-info/doctor_id.txt')
+    last_message_file: str = os.getenv('VACCIN_LAST_MESSAGE_FILE', './last_message_read.txt')
+    last_message_treated_file: str = os.getenv('VACCIN_LAST_MESSAGE_TREATED_FILE', './24hours_messages_treated.json')
+    doctor_id_file: str = os.getenv('VACCIN_DOCTOR_ID_FILE', './doctor_id.txt')
     my_twitter_id: str
     list_experts: list
     last_days_tweets: list
@@ -57,10 +59,10 @@ class VaccinInfo(object):
             self.doctor_id = int(f.read())
         self.tmp_doctor_id = self.doctor_id
 
-        all_doctor_name = [d[0] for d in self.list_experts]
-        all_doctor_users = []
-        for sublist in list(chunks(all_doctor_name, 100)):
-            all_doctor_users.append(self.twitter.get_users(list_user_names=sublist))
+        #all_doctor_name = [d[0] for d in self.list_experts]
+        #all_doctor_users = []
+        #for sublist in list(chunks(all_doctor_name, 100)):
+            #all_doctor_users.append(self.twitter.get_users(list_user_names=sublist))
 
 
     def get_doctor(self):
@@ -81,7 +83,7 @@ class VaccinInfo(object):
             + ''.join(['*' for index in range(len(name)) if index != 0 and index != len(name) - 1]) \
             + last_c
 
-    def forward_to_doctor_and_patient(self, message: str, doctor_id: str, sender_id: str, doctor_name: str, sender_name: str):
+    def forward_to_doctor_and_patient(self, message: str, doctor_id: str, sender_id: str, doctor_name: str, sender_name: str, ticket: uuid.UUID):
         doctor_name = self.anonymize_name(doctor_name)
         self.twitter.send_private_message_with_redirection(
             message=f"""@{sender_name} veut en savoir plus sur la vaccination.
@@ -90,7 +92,8 @@ class VaccinInfo(object):
 
 Prenez contact avec lui""",
             user_id=doctor_id,
-            user_redirect_id=sender_id
+            user_redirect_id=sender_id,
+            ticket=ticket
         )
         self.twitter.send_private_message(f"""Bonjour
 @ {doctor_name} va vous répondre dans les heures qui suivent, Restez connecté ! Vous pourrez alors poser vos questions sur la vaccination !
@@ -106,7 +109,6 @@ Prenez contact avec lui""",
 
     def chose_doc_for_message(self, elem, sender_name):
         patient_id = elem.message_create['sender_id']
-
         while True:
             doctor_name = self.get_doctor()
             doctor_id = self.twitter.get_id_from_username(doctor_name) # TODO can be optimize with one call to get all ids
@@ -117,11 +119,16 @@ Prenez contact avec lui""",
                 break
             else:
                 try:
+                    ticket = uuid.uuid4()
                     self.next_doctor()
                     self.forward_to_doctor_and_patient(elem.message_create['message_data']['text'],
-                                                       doctor_id, patient_id, doctor_name, sender_name)
+                                                       doctor_id, patient_id, doctor_name, sender_name, ticket)
                     self.already_send_id.append(elem.message_create['sender_id'])
                     self.last_days_tweets.append(elem._json)
+
+                    created_at = datetime.fromtimestamp(int(elem.created_timestamp) / 1000).isoformat()
+                    self.doctor_sheet.create_ticket(elem.id, created_at, ticket,
+                                                    elem.message_create['message_data']['text'], doctor_name)
                     break
                 except Exception as e:
                     print(e)
@@ -164,10 +171,10 @@ Prenez contact avec lui""",
         with open(self.last_message_file, 'w+') as f:
             f.write(most_recent_id)
 
-        all_sender_ids = [elem.message_create['sender_id'] for elem in last_private_message]
-        all_sender_users = []
-        for sublist in list(chunks(all_sender_ids, 100)):
-            all_sender_users.append(self.twitter.get_users(list_user_ids=sublist))
+        #all_sender_ids = [elem.message_create['sender_id'] for elem in last_private_message]
+        #all_sender_users = []
+        #for sublist in list(chunks(all_sender_ids, 100)):
+         #   all_sender_users.append(self.twitter.get_users(list_user_ids=sublist))
 
         for elem in last_private_message:
             if elem.id == last_message_id:
