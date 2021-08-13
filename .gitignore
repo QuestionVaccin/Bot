@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+.idea/
+.env
+24hours_messages_treated.json
+doctor_id.txt
+last_message_read.txt
+src/utils/creds_gdrive.py
