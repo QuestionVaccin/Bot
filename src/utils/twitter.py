@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import tweepy
 import os
 import pprint
@@ -17,7 +19,7 @@ pprint = pprint.PrettyPrinter()
 
 class Twitter(object):
     last_message_treated_file: str = os.getenv('VACCIN_LAST_MESSAGE_TREATED_FILE',
-                                               './scripts/vaccin-info/24hours_messages_treated.json')
+                                               './24hours_messages_treated.json')
 
     def __init__(self):
         self.api = tweepy.API(auth)
@@ -28,7 +30,7 @@ class Twitter(object):
     def can_send_private_message(self, sender_id, target_id):
         # Show friendship return a tuple with first -> source (The one how will send a message first)
         # and we return if the bot can dm the target
-        return self.api.show_friendship(self, source_id=sender_id, target_id=target_id)[0].can_dm
+        return self.api.show_friendship(source_id=sender_id, target_id=target_id)[0].can_dm
 
     def get_last_day_tweets(self):
         with open(self.last_message_treated_file, 'r+') as f:
@@ -72,7 +74,7 @@ class Twitter(object):
         if CONSUMER_API_SECRET and CONSUMER_API_KEY and ACCESS_API_SECRET and ACCESS_API_KEY:
             self.api.lookup_users(user_ids=list_user_ids, screen_names=list_user_names)
 
-    def send_private_message_with_redirection(self, message, user_id=None, user_redirect_id=None):
+    def send_private_message_with_redirection(self, message: str, user_id: str, user_redirect_id: str, ticket: UUID):
         if not PRODUCTION:
             print(f'---- send message with redirection for {user_id} ---')
             print(message)
@@ -88,6 +90,10 @@ class Twitter(object):
                             'type': 'web_url',
                             'label': "Envoyer un message",
                             'url': f'https://twitter.com/messages/compose?recipient_id={user_redirect_id}'
+                        }, {
+                            'type': 'web_url',
+                            'label': "Fermer le ticket",
+                            'url': f'http://questionvaccin.e-bernard.me:5000/close_ticket?ticket_uuid={ticket.__str__()}'
                         }]
                     }
                 }

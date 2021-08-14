@@ -1,8 +1,10 @@
+from uuid import UUID
+
 import gspread
-from creds_gdrive import CREDS
+from .creds_gdrive import CREDS
 import os
 
-PRODUCTION =os.getenv('PRODUCTION_VACCIN_INFO', 'false') == 'true'
+PRODUCTION = os.getenv('PRODUCTION_VACCIN_INFO', 'false') == 'true'
 
 scopes = ['https://www.googleapis.com/auth/spreadsheets']
 
@@ -10,7 +12,8 @@ scopes = ['https://www.googleapis.com/auth/spreadsheets']
 class DoctorSheet(object):
     def __init__(self):
         gc = gspread.service_account_from_dict(CREDS)
-        self.sheet = gc.open('Liste spécialistes Bot').get_worksheet(0)
+        self.sheet = gc.open('Liste specialistes Bot').get_worksheet(0)
+        self.tickets = gc.open('Liste specialistes Bot').get_worksheet(2)
 
     def get_list_doctors_active(self):
         """
@@ -47,8 +50,12 @@ class DoctorSheet(object):
         if PRODUCTION:
             list_experts = self.get_list_doctors_active()
         else:
-            list_experts = [ ('KillianGardabas', 'TRUE') ]
+            list_experts = [ ('KillianGardabas', 'TRUE'), ('bernard_erwan', 'TRUE')]
         return list_experts
+
+    def create_ticket(self, id: str, date: str, ticket: UUID, question: str, specialist: str):
+        val = [id, date, ticket.__str__(), question, specialist]
+        self.tickets.append_row(val)
 
 
 if __name__ == "__main__":
