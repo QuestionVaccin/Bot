@@ -21,6 +21,7 @@ VACCIN_LAST_MESSAGE_TREATED_FILE
 
 ### TODO
 
+- Statistics
 - Answer to mentions
 - Scale
 - Ticket management
