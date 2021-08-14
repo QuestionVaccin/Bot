@@ -4,6 +4,8 @@ QuestionVaccin is a twitter bot aiming to connect doctor and people with questio
 
 The bot **DOES NOT** answer itself to questions, it just connect doctors and people
 
+[@QuestionVaccin](https://twitter.com/questionvaccin)
+
 ### ENV file
 
 .env file require the following variables to work
