@@ -53,8 +53,8 @@ class DoctorSheet(object):
             list_experts = [ ('KillianGardabas', 'TRUE'), ('bernard_erwan', 'TRUE')]
         return list_experts
 
-    def create_ticket(self, id: str, date: str, ticket: UUID, question: str, specialist: str):
-        val = [id, date, ticket.__str__(), question, specialist]
+    def create_ticket(self, id: str, sender_id: str, date: str, ticket: UUID, question: str, specialist: str):
+        val = [id, sender_id, date, ticket.__str__(), question, specialist]
         self.tickets.append_row(val)
 
 

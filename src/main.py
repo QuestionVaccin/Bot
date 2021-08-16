@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 
 from utils.twitter import Twitter
 from utils.gdrive import DoctorSheet
+from utils.creds_gdrive import SENTRY_URL
 
 os.environ['TZ'] = 'Europe/Paris'
 now = datetime.now()
@@ -18,8 +19,7 @@ PRODUCTION = os.getenv('PRODUCTION_VACCIN_INFO', 'false') == 'true'
 
 if PRODUCTION:
     sentry_sdk.init(
-        "https://3d900e44eaa14af5965f2a28b94c758b@o938280.ingest.sentry.io/5888238",
-
+        SENTRY_URL,
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.
         # We recommend adjusting this value in production.
@@ -63,7 +63,6 @@ class VaccinInfo(object):
         #all_doctor_users = []
         #for sublist in list(chunks(all_doctor_name, 100)):
             #all_doctor_users.append(self.twitter.get_users(list_user_names=sublist))
-
 
     def get_doctor(self):
         while True:
@@ -127,7 +126,7 @@ Prenez contact avec lui""",
                     self.last_days_tweets.append(elem._json)
 
                     created_at = datetime.fromtimestamp(int(elem.created_timestamp) / 1000).isoformat()
-                    self.doctor_sheet.create_ticket(elem.id, created_at, ticket,
+                    self.doctor_sheet.create_ticket(elem.id, elem.message_create['sender_id'], created_at, ticket,
                                                     elem.message_create['message_data']['text'], doctor_name)
                     break
                 except Exception as e:
