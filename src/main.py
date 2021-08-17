@@ -28,7 +28,7 @@ if PRODUCTION:
 
 MP_CLOSED = """Vos messages ne sont pas ouverts, ouvrez-les pour qu'un spécialiste puisse prendre contact avec vous\n
 Plus > Paramètres et Confidentialité > Confidentialité et sécurité > Message privés > activer les demandes de message de tout le monde.
-Puis renvoyez 'question'"""
+Puis renvoyez votre question"""
 
 
 def chunks(lst, n):
@@ -59,15 +59,18 @@ class VaccinInfo(object):
             self.doctor_id = int(f.read())
         self.tmp_doctor_id = self.doctor_id
 
-        #all_doctor_name = [d[0] for d in self.list_experts]
-        #all_doctor_users = []
-        #for sublist in list(chunks(all_doctor_name, 100)):
-            #all_doctor_users.append(self.twitter.get_users(list_user_names=sublist))
+        all_doctor_name = [d[0] for d in self.list_experts]
+        all_doctor_users = {}
+        for sublist in list(chunks(all_doctor_name, 99)):
+            s = dict([(user.screen_name, user.id) for user in self.twitter.get_users(list_user_names=sublist)])
+            all_doctor_users = {**all_doctor_users, **s}
+
+        self.list_experts = [(d[0], d[1], all_doctor_users[d[0]]) for d in self.list_experts]
 
     def get_doctor(self):
         while True:
             if self.list_experts[self.doctor_id][1] == 'TRUE':
-                return self.list_experts[self.doctor_id][0]
+                return self.list_experts[self.doctor_id][0], self.list_experts[self.doctor_id][2]
 
             self.next_doctor()
 
@@ -109,8 +112,7 @@ Prenez contact avec lui""",
     def chose_doc_for_message(self, elem, sender_name):
         patient_id = elem.message_create['sender_id']
         while True:
-            doctor_name = self.get_doctor()
-            doctor_id = self.twitter.get_id_from_username(doctor_name) # TODO can be optimize with one call to get all ids
+            doctor_name, doctor_id = self.get_doctor()
             response = self.twitter.can_send_private_message(doctor_id, patient_id)
 
             if not response:
@@ -170,10 +172,11 @@ Prenez contact avec lui""",
         with open(self.last_message_file, 'w+') as f:
             f.write(most_recent_id)
 
-        #all_sender_ids = [elem.message_create['sender_id'] for elem in last_private_message]
-        #all_sender_users = []
-        #for sublist in list(chunks(all_sender_ids, 100)):
-         #   all_sender_users.append(self.twitter.get_users(list_user_ids=sublist))
+        all_sender_ids = [elem.message_create['sender_id'] for elem in last_private_message]
+        all_sender_users = {}
+        for sublist in list(chunks(all_sender_ids, 99)):
+            users = dict([(str(u.id), u.screen_name) for u in self.twitter.get_users(list_user_ids=sublist)])
+            all_sender_users = {**all_sender_users, **users}
 
         for elem in last_private_message:
             if elem.id == last_message_id:
@@ -187,7 +190,7 @@ Prenez contact avec lui""",
             print(elem.id)
             try:
                 sender_id = elem.message_create['sender_id']
-                sender_name = self.twitter.get_username_from_id(sender_id) # TODO can be optimize with one call to get all ids
+                sender_name = all_sender_users[sender_id]
                 if sender_name in self.doctor_sheet.get_list_doctors():
                     self.update_doctor_status(sender_name, sender_id, elem.message_create['message_data']['text'].strip().lower())
                 elif elem.message_create['sender_id'] not in self.slow_mode_user:

@@ -67,12 +67,9 @@ class Twitter(object):
             self.api.send_direct_message(recipient_id=user_id, text=message)
 
     def get_users(self, list_user_names=None, list_user_ids=None):
-        if not PRODUCTION:
-            print(f"user names: {list_user_names.__len__()}")
-            print(f"user ids: {list_user_ids.__len__()}")
-
         if CONSUMER_API_SECRET and CONSUMER_API_KEY and ACCESS_API_SECRET and ACCESS_API_KEY:
-            self.api.lookup_users(user_ids=list_user_ids, screen_names=list_user_names)
+            return self.api.lookup_users(user_ids=list_user_ids, screen_names=list_user_names)
+        return []
 
     def send_private_message_with_redirection(self, message: str, user_id: str, user_redirect_id: str, ticket: UUID):
         if not PRODUCTION:
