@@ -130,7 +130,7 @@ Prenez contact avec lui""",
 
                     created_at = datetime.fromtimestamp(int(elem.created_timestamp) / 1000).isoformat()
                     self.doctor_sheet.create_ticket(elem.id, elem.message_create['sender_id'], created_at, ticket,
-                                                    elem.message_create['message_data']['text'], doctor_name)
+                                                    ' ', doctor_name)
                     break
                 except Exception as e:
                     print(e)
