@@ -93,7 +93,7 @@ class VaccinInfo(object):
 {"Sa question: " + message if message.strip().lower() != 'question' else ""}
 
 
-Prenez contact avec lui""",
+Prenez contact avec lui/elle""",
             user_id=doctor_id,
             user_redirect_id=sender_id,
             ticket=ticket
@@ -130,7 +130,7 @@ Prenez contact avec lui""",
 
                     created_at = datetime.fromtimestamp(int(elem.created_timestamp) / 1000).isoformat()
                     self.doctor_sheet.create_ticket(elem.id, elem.message_create['sender_id'], created_at, ticket,
-                                                    ' ', doctor_name)
+                                                    'Question', doctor_name)
                     break
                 except Exception as e:
                     print(e)
