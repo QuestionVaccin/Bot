@@ -89,6 +89,7 @@ class VaccinInfo(object):
         doctor_name = self.anonymize_name(doctor_name)
         self.twitter.send_private_message_with_redirection(
             message=f"""@{sender_name} veut en savoir plus sur la vaccination.
+(Utilisez le bouton en dessous du message pour rentré en contact avec la personne)
 {"Sa question: " + message if message.strip().lower() != 'question' else ""}
 
 

@@ -86,10 +86,6 @@ class Twitter(object):
                         'ctas': [{
                             'type': 'web_url',
                             'label': "Envoyer un message",
-                            'url': f'https://twitter.com/messages/compose?recipient_id={user_redirect_id}'
-                        }, {
-                            'type': 'web_url',
-                            'label': "Fermer le ticket",
                             'url': f'http://questionvaccin.e-bernard.me:5000/close_ticket?ticket_uuid={ticket.__str__()}'
                         }]
                     }
