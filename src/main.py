@@ -118,6 +118,7 @@ Prenez contact avec lui/elle""",
 
             if not response:
                 self.twitter.send_private_message(MP_CLOSED, user_id=patient_id)
+                self.already_send_id.append(elem.message_create['sender_id']) # Is local to this run off the script
                 break
             else:
                 try:
@@ -125,8 +126,8 @@ Prenez contact avec lui/elle""",
                     self.next_doctor()
                     self.forward_to_doctor_and_patient(elem.message_create['message_data']['text'],
                                                        doctor_id, patient_id, doctor_name, sender_name, ticket)
-                    self.already_send_id.append(elem.message_create['sender_id'])
-                    self.last_days_tweets.append(elem._json)
+                    self.already_send_id.append(elem.message_create['sender_id'])  # Is local to this run off the script
+                    self.last_days_tweets.append(elem._json)                       # Is global to today's run off the script
 
                     created_at = datetime.fromtimestamp(int(elem.created_timestamp) / 1000).isoformat()
                     self.doctor_sheet.create_ticket(elem.id, elem.message_create['sender_id'], created_at, ticket,
